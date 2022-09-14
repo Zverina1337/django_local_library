@@ -1,7 +1,12 @@
+from tokenize import group
+from urllib import request
 from django.shortcuts import render
 from django.views import generic
 from .models import Book, Author, BookInstance, Genre
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
+from django import template
+import uuid
 
 def index(request):
     """
@@ -16,6 +21,8 @@ def index(request):
     num_genre = Genre.objects.filter(name__exact='Tomsk').count()
     num_visits=request.session.get('num_visits', 0)
     request.session['num_visits'] = num_visits+1
+    is_librarian = request.user.groups.filter(name='Librarians').exists()
+
     # Отрисовка HTML-шаблона index.html с данными внутри
     # переменной контекста context
     return render(
@@ -45,6 +52,20 @@ class LoanedBooksByUserListView(LoginRequiredMixin,generic.ListView):
     model = BookInstance
     template_name ='catalog/bookinstance_list_borrowed_user.html'
     paginate_by = 10
-
+    
     def get_queryset(self):
         return BookInstance.objects.filter(borrower=self.request.user).filter(status__exact='o').order_by('due_back')
+
+class LoanedUsersByBookListView(LoginRequiredMixin,generic.ListView):
+    model = User
+    template_name ='catalog/list_borrowed_users.html'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        borrowed_books = BookInstance.objects.filter(status__exact='o').values_list('id', flat=True)
+        print(BookInstance.objects.filter(status__exact='o').order_by('due_back'))
+        print(User.objects.filter(bookinstance__in=borrowed_books))
+        return User.objects.filter(bookinstance__in=borrowed_books)
+        
+
+
