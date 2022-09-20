@@ -21,14 +21,14 @@ def index(request):
     num_genre = Genre.objects.filter(name__exact='Tomsk').count()
     num_visits=request.session.get('num_visits', 0)
     request.session['num_visits'] = num_visits+1
-    is_librarian = request.user.groups.filter(name='Librarians').exists()
 
     # Отрисовка HTML-шаблона index.html с данными внутри
     # переменной контекста context
     return render(
         request,
         'index.html',
-        context={'num_books':num_books,'num_instances':num_instances,'num_instances_available':num_instances_available,'num_authors':num_authors, 'num_genre': num_genre, 'num_visits':num_visits},
+        context={'num_books':num_books,'num_instances':num_instances,'num_instances_available':num_instances_available,
+        'num_authors':num_authors, 'num_genre': num_genre, 'num_visits':num_visits},
     )
 
 class BookListView(generic.ListView):
